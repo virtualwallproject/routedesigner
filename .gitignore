@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# blender files
+*.blend1
+
+# armory build files
+build/*
+build_*/*
+scene/build_*/*
+armory/build_firstcameratest/*
+*.arm
+*.glsl
+*.hlsl
+*.d3d11
+*.hdr
+khafile\d+.js
+
+# armory generated haxe scripts for nodetrees
+Sources/arm/node*/*.hx
+
+# extra main haxe scripts
+Sources/Main *.hx
