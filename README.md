@@ -8,14 +8,14 @@ Route Designer is a game/tool for digital route setting that is developed by the
 ## Features
 
 * To-scale 3D rendering of actual climbing holds and walls
-* Choice of Nintendo Joycon, keyboard, mouse, and touch input
+* Choice of Nintendo joycon, keyboard, mouse, and touch input
 * Virtual hold bucket to easily see and select holds
 * Grid-based placement system designed to mimic wall t-nut pattern
 * Ability to adjust hold placement to mimic screw-on holds
 
 ### Feature Requests
 
-Help select new features by adding your 👍 reaction to [GitHub issues for features]() you would like to see added
+Help select new features by adding your 👍 reaction to [GitHub issues for features](https://github.com/virtualwallproject/routedesigner/labels/feature%20request) you would like to see added
 
 ## Supported platforms
 
