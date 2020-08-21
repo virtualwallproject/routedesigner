@@ -6,6 +6,8 @@ class Main {
     public static inline var projectPackage = 'arm';
     public static function main() {
         iron.object.BoneAnimation.skinMaxBones = 8;
+        armory.system.Starter.numAssets = 17;
+        armory.system.Starter.drawLoading = arm.LoadingScreen.render;
         armory.system.Starter.main(
             'Scene',
             1,

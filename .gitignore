@@ -23,3 +23,6 @@ Sources/arm/node*/*.hx
 
 # extra main haxe scripts
 Sources/Main *.hx
+
+# vscode files
+\.vscode/*
