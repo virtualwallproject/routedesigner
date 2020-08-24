@@ -26,3 +26,6 @@ Sources/Main *.hx
 
 # vscode files
 \.vscode/*
+
+# blender python script files
+scripts/*
