@@ -110,7 +110,7 @@ class Wall {
     // select to the panel that has the closest loc
     var panel:Panel = close_panels[i];
 
-    var max_dist:Float =
+    var max_dist:FastFloat =
       2*Math.max(panel.get_spacing().x,panel.get_spacing().y)*panel.get_scale();
     if (close_loc_dists[i] > max_dist) return null;
     
@@ -166,7 +166,7 @@ class Panel {
   var start:Vec4;
   var spacing:Vec2;
   var offset:Vec2;
-  var scale:Float;
+  var scale:FastFloat;
   var loc:Array<Vec4>;
   
   public function new(id:Int,m:DynamicAccess<Dynamic>) {
@@ -178,10 +178,17 @@ class Panel {
     spacing = new Vec2(m["spacing"][0],m["spacing"][1]);
     offset = new Vec2(m["offset"][0],m["offset"][1]);
     scale = m["scale"];
+    var scale_loc:FastFloat = m["scale_loc"];
     loc = new Array<Vec4>();
     var temp:Array<Dynamic> = m["loc"];
-    for (i in 0...temp.length)
-      loc.push(new Vec4(temp[i][0],temp[i][1],temp[i][2],0));
+    for (i in 0...Std.int(temp.length/3)) {
+      // push vec4 from -32676 to 32767 integer
+      loc.push(new Vec4(temp[3*i],temp[3*i+1],temp[3*i+2],0));
+      // scale to distance from integer
+      loc[loc.length-1].mult(scale_loc/32767.0);
+      // add back in center of panel
+      loc[loc.length-1].add(center);
+    }
   }
   
   public function get_id():Int return id;
@@ -194,7 +201,7 @@ class Panel {
 
   public function get_spacing():Vec2 return spacing;
 
-  public function get_scale():Float return scale;
+  public function get_scale():FastFloat return scale;
   
   public function get_loc():Array<Vec4> return loc;
   
