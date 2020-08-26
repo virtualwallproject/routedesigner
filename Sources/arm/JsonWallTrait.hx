@@ -25,7 +25,6 @@ using Lambda;
 
 class JsonWallTrait extends iron.Trait {
   var wall:Wall = null;
-  var traced:Bool = false;
   
   public function new() {
     super();
@@ -38,12 +37,8 @@ class JsonWallTrait extends iron.Trait {
       });
     });
     
-    notifyOnUpdate(function() {
-      if ((wall != null) && (!traced)) {
-        trace('Number of panels=${wall.panels.length}');
-        traced = true;
-      }
-    });
+    // notifyOnUpdate(function() {
+    // });
     
     // notifyOnRemove(function() {
     // });
@@ -143,8 +138,6 @@ class Wall {
           // Create new object in active scene
           Scene.active.addMeshObject(meshData, materials);
         });
-
-        for (mat in materials) trace('loaded ${mat.name} material');
 
       }
 
