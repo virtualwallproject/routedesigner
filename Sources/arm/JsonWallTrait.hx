@@ -1,7 +1,11 @@
 package arm;
 
+import iron.Scene;
+import iron.object.Object;
 import kha.Assets;
 import kha.Blob;
+import kha.arrays.Int16Array;
+import kha.arrays.Uint32Array;
 import haxe.Json;
 import haxe.DynamicAccess;
 import kha.FastFloat;
@@ -10,6 +14,10 @@ import iron.math.Vec2;
 import iron.math.Vec4;
 import iron.math.Mat4;
 import iron.math.Ray;
+import iron.data.Data;
+import iron.data.MeshData;
+import iron.data.MaterialData;
+import iron.data.SceneFormat;
 
 import arm.ObjectTools;
 
@@ -47,6 +55,8 @@ class JsonWallTrait extends iron.Trait {
 class Wall {
   public var panels:Array<Panel>;
   var local:Mat4; // closest tnut local matrix, returned by hitray_to_local()
+  var meshData:MeshData;
+  var materials:haxe.ds.Vector<MaterialData>;
   
   public function new() {
     panels = new Array<Panel>();
@@ -63,14 +73,100 @@ class Wall {
     for (key => value in m){
       
       if (key == "panels") {
+
         for (id => data in (value:DynamicAccess<Dynamic>)) {
           var j:DynamicAccess<Dynamic> = data;
           panels.push(new Panel(Std.parseInt(id),j));
         }
-      } else {
-        panels = null;
-        break;
+
+      } else if (key == "mesh_data") {
+
+        // initialize variables we set in first for loop
+        var scale_pos:FastFloat = 1.0;
+        var num_verts:Int = 0;
+        var names:Array<String> = new Array<String>();
+
+        for (id => data in (value:DynamicAccess<Dynamic>)) {
+
+          if (id == "materials") {
+
+            names = data;
+            materials = new haxe.ds.Vector(names.length);
+
+          } else if (id == "scale_pos") scale_pos = data;
+          else if (id == "num_verts") num_verts = data;
+
+        }
+
+        // initialize variables we set in second for loop
+        var pos: TVertexArray = { attrib: "pos", values: new Int16Array(4*num_verts), data: "short4norm" };
+		    var nor: TVertexArray = { attrib: "nor", values: new Int16Array(2*num_verts), data: "short2norm" };
+        var index_map: Map<Int,Array<Int>> = new Map<Int,Array<Int>>();
+
+        for (id => data in (value:DynamicAccess<Dynamic>)) {
+
+          if (id == "vertex_arrays") {
+            
+            var arrays:Array<DynamicAccess<Dynamic>> = data;
+            loadVertexArrays(arrays,pos,nor);
+
+          } else if (id == "index_arrays") {
+
+            var arrays:Array<DynamicAccess<Dynamic>> = data;
+            loadIndexArrays(arrays,index_map);
+
+          }
+
+        }
+
+        var toU32 = function(to:Uint32Array, from:Array<Int>)
+          for (i in 0...to.length) to[i] = from[i];
+
+        var ind: Array<TIndexArray> = [
+          for (m => v in index_map)
+            {material: m, values: new Uint32Array(v.length)}
+        ];
+        ind.sort((a,b) -> a.material - b.material);
+
+        for (i in ind) toU32(i.values,index_map[i.material]);
+
+        var rawmeshData:TMeshData = {
+          name: "WallMesh",
+          vertex_arrays: [pos, nor],
+          index_arrays: ind,
+          scale_pos: scale_pos
+        };
+
+        new MeshData(rawmeshData, function(data:MeshData) {
+          meshData = data;
+          loadMaterials(names,materials);
+          // Create new object in active scene
+          Scene.active.addMeshObject(meshData, materials);
+        });
+
+        for (mat in materials) trace('loaded ${mat.name} material');
+
       }
+
+    }
+  }
+
+  function loadMaterials(names:Array<String>,mats:haxe.ds.Vector<MaterialData>) {
+    for (i in 0...names.length) {
+      Data.getMaterial("Scene", names[i], function(data:MaterialData) {
+        materials[i] = data;
+      });
+    }
+  }
+
+  function loadVertexArrays(data:Array<DynamicAccess<Dynamic>>,pos:TVertexArray,nor:TVertexArray) {
+    for (i in 0...pos.values.length) pos.values[i] = data[0]["values"][i];
+    for (i in 0...nor.values.length) nor.values[i] = data[1]["values"][i];
+  }
+
+  function loadIndexArrays(data:Array<DynamicAccess<Dynamic>>,map:Map<Int,Array<Int>>) {
+    for (i in 0...data.length) {
+      map.set(data[i]["material"],data[i]["values"]);
     }
   }
 
