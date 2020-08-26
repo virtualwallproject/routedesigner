@@ -6,8 +6,8 @@ import iron.Scene;
 import iron.data.MaterialData;
 import iron.math.Vec4;
 import iron.object.Object;
-import iron.object.MeshObject;
 import iron.object.CameraObject;
+import iron.data.Data;
 
 import kha.FastFloat;
 
@@ -45,12 +45,11 @@ class SlaveFrameTrait extends iron.Trait {
 				spawned_parent = scene.getChild(spawned_parent_name);
 			}
 
-			for (name in ['Yellow', 'Green', 'Blue', 'Red', 'Black']) {
-				var o:Object = scene.getChild(name);
-				if (o != null) {
-					var m:MeshObject = cast(o,MeshObject);
-					ape_materials.push(m.materials[0]);
-				}
+			for (name in ['Yellow', 'Slimy Green', 'Blue', 'Red', 'Black']) {
+				Data.getMaterial("Scene", name, function(data:MaterialData) {
+					ape_materials.push(data);
+					// trace('Loaded material ${ape_materials[ape_materials.length].name}');
+				});
 			}
 
 			// change the material of the slave frames children
