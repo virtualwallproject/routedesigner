@@ -60,8 +60,8 @@ class KeyboardSendEvents extends iron.Trait {
 
       // if joycon has been detected replace help name with joycon help name
       #if kha_js
-			var st:SceneTrait = scene.getTrait(SceneTrait);
-      if (st.num_joycons() > 0) {
+			var scene_trait:SceneTrait = scene.getTrait(SceneTrait);
+      if (scene_trait.num_joycons() > 0) {
         if (keyboard.get_joycon().side == 'left')
           help_name = leftjoycon_help_name;
         else
