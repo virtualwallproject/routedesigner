@@ -32,7 +32,7 @@ class MasterFrameTrait extends iron.Trait {
 	@prop
 	var slave_frame_name: String;
 	@prop
-	var wall_name:String;
+	var mesh_name:String;
 	
 	public function new() {
 		super();
@@ -46,8 +46,10 @@ class MasterFrameTrait extends iron.Trait {
 		notifyOnUpdate(function() {
 			if (slave_frame == null)
 				slave_frame = Scene.active.getChild(slave_frame_name);
-			if (json_wall == null)
-				json_wall = Scene.active.getChild(wall_name);
+			if (json_wall == null) {
+				json_wall = Scene.active.getChild(mesh_name);
+				if (json_wall == null) Scene.active.spawnObject(mesh_name, null, null);
+			}
 		});
 		
 		// notifyOnRemove(function() {
