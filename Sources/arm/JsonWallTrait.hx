@@ -30,8 +30,10 @@ class JsonWallTrait extends iron.Trait {
     super();
     
     notifyOnInit(function() {
-      // assume the json file is the only asset... haha
-      Assets.loadBlob(Assets.blobs.names[0], function (b:Blob) {
+      var scene_trait:SceneTrait = Scene.active.getTrait(SceneTrait);
+
+      Assets.loadBlob(scene_trait.wall_name() + "_json", function (b:Blob) {
+        trace('Wall name ${scene_trait.wall_name() + "_json"}');
         wall = new Wall();
         wall.loadFromJsonString(b.toString());
       });

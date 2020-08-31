@@ -4,6 +4,7 @@ import kha.System;
 
 class SceneTrait extends iron.Trait {
 	var joycons:Int = 0;
+	var slug_name:String = "alphaboulder";
 
 	public function new() {
 		super();
@@ -17,6 +18,9 @@ class SceneTrait extends iron.Trait {
 			if (q.exists('joycons')) {
 				var temp = Std.parseInt(q['joycons']);
 				if (temp != null) joycons = temp;
+			}
+			if (q.exists("slug")) {
+				if (q['slug'] != "") slug_name = q['slug'];
 			}
 			#end
 		});
@@ -33,6 +37,8 @@ class SceneTrait extends iron.Trait {
 	}
 
 	public function num_joycons():Int return joycons;
+
+	public function wall_name():String return slug_name;
 
 	function decode_query(uri:String):Map<String, String> {
 		var i:Int = uri.lastIndexOf('?');
