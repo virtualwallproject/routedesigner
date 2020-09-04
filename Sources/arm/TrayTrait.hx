@@ -315,23 +315,26 @@ class TrayTrait extends iron.Trait {
 	public function hide_grips() show_grips = false;
 
 	public function is_clicked(x:FastFloat,y:FastFloat):Int {
-		var radius = offset.length()/2;
+		if (show_grips) {
+			var radius = offset.length()/2;
 
-		var i_x:Int = Math.round((x - screen_loc.x)/offset.x);
-		var y_i:FastFloat = screen_loc.y + i_x*offset.y;
-		var x_i:FastFloat = screen_loc.x + i_x*offset.x;
+			var i_x:Int = Math.round((x - screen_loc.x)/offset.x);
+			var y_i:FastFloat = screen_loc.y + i_x*offset.y;
+			var x_i:FastFloat = screen_loc.x + i_x*offset.x;
 
-		// since tray is displayed horizontally quickly eliminate taps based on y
-		if ((Math.abs(y - y_i) > radius) || (i_x == 0)) return 0;
+			// since tray is displayed horizontally quickly eliminate taps based on y
+			if ((Math.abs(y - y_i) > radius) || (i_x == 0)) return 0;
 
-		if (Math.abs(x - x_i) < radius) {
-			var slave_trait = object.parent.getTrait(SlaveFrameTrait);
-			var max = slave_trait.get_max_grips();
+			if (Math.abs(x - x_i) < radius) {
+				var slave_trait = object.parent.getTrait(SlaveFrameTrait);
+				var max = slave_trait.get_max_grips();
 
-			if (i_x > 0) i_x--;
-			return (i_x + current_grip - 1)%max + 1;
+				if (i_x > 0) i_x--;
+				return (i_x + current_grip - 1)%max + 1;
+			}
 		}
-		else return 0;
+		
+		return 0;
 	}
 
 	public function is_dragged(x:FastFloat,y:FastFloat):Bool {
