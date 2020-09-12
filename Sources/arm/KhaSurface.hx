@@ -244,6 +244,31 @@ class KhaSurface {
       return dists.foreach(function(v) return v < -radius);
     }
   }
+
+  /**
+   * Return the direction of drag reduced to 3 bits
+   * @param i The finger index to check
+   * @return Int 0-8 direction value:
+   * 0=Right,1=Right-Up,2=Up,3=Left-Up,4=Left,5=Left-Down,6=Down,7=Down-Right
+   */
+  public function drag_3bitdirection(i:Int):Int {
+    var temp:Vec2 = move_last(i);
+    var angle:FastFloat = Math.atan2(temp.y,temp.x);
+    var A = Math.PI/8;
+
+    var between = (a:FastFloat,b:FastFloat) -> ((a <= angle) && (angle < b));
+
+    if (between(-A,A)) return 0;
+    else if (between(A,3*A)) return 7;
+    else if (between(3*A,5*A)) return 6;
+    else if (between(5*A,7*A)) return 5;
+    else if (between(7*A,9*A)) return 4;
+    else if (between(-3*A,-A)) return 1;
+    else if (between(-5*A,-3*A)) return 2;
+    else if (between(-7*A,-5*A)) return 3;
+    else if (between(-9*A,-7*A)) return 4;
+    else return -1;
+  }
   
   /**
   * Check if a number of fingers have been swiped a particular direction
@@ -381,7 +406,7 @@ class KhaSurface {
   public function get_hold():FastFloat return hold_time;
 
 	/**
-	 * Get the tray drag index variable or compute it based on a length=
+	 * Get the value of tray drag index
 	 * @return Int the class variable
 	 */
 	public function get_drag_index():Int return tray_drag_index;
