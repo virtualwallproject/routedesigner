@@ -275,51 +275,61 @@ class SurfaceSendEvents extends iron.Trait {
     var slave_trait = slave_frame.getTrait(SlaveFrameTrait);
     var tray_trait = tray_trait();
 
-    // compute scalar for time held
-    var s1:FastFloat = Math.min(1.0,temp.t_hold(0)/temp.get_hold());
+    // evaluate booleans
+    var hold_clicked:Bool = camera_trait.click_hold(click.x,click.y);
+    var tray_dragged:Bool = (tray_trait != null) && (tray_trait.is_dragged(click.x,click.y));
+    var valid_state:Bool = slave_trait.get_shown() <= 0;
 
-    if (camera_trait.click_hold(click.x,click.y)) {
+    if (hold_clicked || tray_dragged || valid_state) {
+      if (tray_dragged) {
+        var i:Int = tray_trait.calculate_drag_index(temp.move_last(0));
+        var j:Int = temp.get_drag_index();
+        if ((i != j) && (temp.dragged(1,true,false) || temp.dragged(1,true,true))) {
+          temp.set_drag_index(i);
+          if (i < j) tray_trait.show_next_grip();
+          else if (i > j) tray_trait.show_prev_grip();
+        }
+      } else {
+        if (hold_clicked) slave_trait.show_move();
+        var s1:FastFloat = Math.min(1.0,temp.t_hold(0)/temp.get_hold());
+        var directions:Array<Int> = [temp.drag_3bitdirection(0)];
+        
+        var i = 0;
+        while (i < directions.length) {
+          switch (directions[i]) {
+            case 0: 
+              (hold_clicked) ? slave_trait.move_right(s1) : camera_trait.move_left(s1);
+            case 1:
+              directions.push(0);
+              directions.push(2);
+            case 2:
+              (hold_clicked) ? slave_trait.move_up(s1) : camera_trait.move_down(s1);
+            case 3:
+              directions.push(2);
+              directions.push(4);
+            case 4:
+              (hold_clicked) ? slave_trait.move_left(s1) : camera_trait.move_right(s1);
+            case 5:
+              directions.push(4);
+              directions.push(6);
+            case 6:
+              (hold_clicked) ? slave_trait.move_down(s1) : camera_trait.move_up(s1);
+            case 7:
+              directions.push(6);
+              directions.push(0);
+          }
+          i++;
+        }
+      }
 
-      if (help_trait.get_current() == MOVEHOLD_SCREENINDEX) {
+      // adjust tutorial screens
+      if (
+        (hold_clicked && (help_trait.get_current() == MOVEHOLD_SCREENINDEX)) ||
+        (tray_dragged && (help_trait.get_current() == DRAGHOLDS_SCREENINDEX)) ||
+        (valid_state && (help_trait.get_current() == MOVECAMERA_SCREENINDEX))
+      ) {
         help_trait.show_next_screen();
       }
-
-      slave_trait.show_move();
-      if (temp.dragged(1,true,false))
-        slave_trait.move_left(s1);
-      else if (temp.dragged(1,true,true))
-        slave_trait.move_right(s1);
-      if (temp.dragged(1,false,false))
-        slave_trait.move_up(s1);
-      else if (temp.dragged(1,false,true))
-        slave_trait.move_down(s1);
-    } else if ((tray_trait != null) && (tray_trait.is_dragged(click.x,click.y))) {
-
-      if (help_trait.get_current() == DRAGHOLDS_SCREENINDEX) {
-        help_trait.show_next_screen();
-      }
-      
-      var i:Int = tray_trait.calculate_drag_index(temp.move_last(0));
-      var j:Int = temp.get_drag_index();
-      if ((i != j) && (temp.dragged(1,true,false) || temp.dragged(1,true,true))) {
-        temp.set_drag_index(i);
-        if (i < j) tray_trait.show_next_grip();
-        else if (i > j) tray_trait.show_prev_grip();
-      }
-    } else if (slave_trait.get_shown() <= 0) {
-
-      if (help_trait.get_current() == MOVECAMERA_SCREENINDEX) {
-        help_trait.show_next_screen();
-      }
-
-      if (temp.dragged(1,true,false))
-        camera_trait.move_right(s1);
-      else if (temp.dragged(1,true,true))
-        camera_trait.move_left(s1);
-      if (temp.dragged(1,false,false))
-        camera_trait.move_down(s1);
-      else if (temp.dragged(1,false,true))
-        camera_trait.move_up(s1);
     }
   }
   
