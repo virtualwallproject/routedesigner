@@ -24,7 +24,7 @@ import arm.ObjectTools;
 using Lambda;
 
 class JsonWallTrait extends iron.Trait {
-  var wall:Wall = null;
+  var wall:Wall;
   
   public function new() {
     super();
@@ -33,7 +33,6 @@ class JsonWallTrait extends iron.Trait {
       var scene_trait:SceneTrait = Scene.active.getTrait(SceneTrait);
 
       Assets.loadBlob(scene_trait.wall_name() + "_json", function (b:Blob) {
-        trace('Wall name ${scene_trait.wall_name() + "_json"}');
         wall = new Wall();
         wall.loadFromJsonString(b.toString());
       });
@@ -251,7 +250,6 @@ class Wall {
 
 class Panel {
   var id:Int;
-  var filepath:String;
   var center:Vec4;
   var xyzw:Quat;
   var start:Vec4;
@@ -262,7 +260,6 @@ class Panel {
   
   public function new(id:Int,m:DynamicAccess<Dynamic>) {
     this.id = id;
-    filepath = new String(m["filepath"]);
     center = new Vec4(m["center"][0],m["center"][1],m["center"][2],0);
     xyzw = new Quat(m["xyzw"][0],m["xyzw"][1],m["xyzw"][2],m["xyzw"][3]);
     start = new Vec4(m["start"][0],m["start"][1],m["start"][2],0);
@@ -283,8 +280,6 @@ class Panel {
   }
   
   public function get_id():Int return id;
-  
-  public function get_filepath():String return filepath;
   
   public function get_center():Vec4 return center;
   
