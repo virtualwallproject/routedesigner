@@ -1,7 +1,8 @@
 package arm;
 
+import kha.internal.VoidCallback;
+import iron.object.MeshObject;
 import iron.data.Data;
-import iron.Scene;
 import kha.FastFloat;
 import kha.arrays.Int16Array;
 import kha.arrays.Uint32Array;
@@ -10,8 +11,8 @@ import iron.data.MeshData;
 import iron.data.MaterialData;
 import iron.data.SceneFormat;
 
-class SceneTools {
-  static public function addMeshObjectFromMap(scene:Scene,name:String,map:DynamicAccess<Dynamic>) {
+class MapTools {
+  static public function mapToMeshData(map:DynamicAccess<Dynamic>,name:String):DynamicAccess<Dynamic> {
     // helper fxns
     var loadMaterials = (names:Array<String>,mats:haxe.ds.Vector<MaterialData>) -> {
       for (i in 0...names.length) {
@@ -85,12 +86,13 @@ class SceneTools {
 			scale_pos: scale_pos
 		};
 
-		new MeshData(rawmeshData, function(data:MeshData) {
-      var materials:haxe.ds.Vector<MaterialData> = new haxe.ds.Vector(names.length);
-			loadMaterials(names,materials);
-			// Create new object in active scene
-			scene.addMeshObject(data, materials);
-    });
+		var temp:DynamicAccess<Dynamic> = new DynamicAccess<Dynamic>();
+		temp['materials'] = new haxe.ds.Vector(names.length);
+		loadMaterials(names,temp['materials']);
+		temp['meshdata'] = new MeshData(rawmeshData,(data:MeshData) -> {});
+		temp['scale_pos'] = scale_pos;
+
+		return temp;
   }
   
 }
