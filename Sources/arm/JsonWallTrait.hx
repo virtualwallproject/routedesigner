@@ -1,6 +1,8 @@
 package arm;
 
-using arm.SceneTools;
+import iron.data.MaterialData;
+import iron.data.MeshData;
+using arm.MapTools;
 
 import iron.Scene;
 import kha.Assets;
@@ -70,7 +72,10 @@ class Wall {
 
       } else if (key == "mesh_data") {
 
-        Scene.active.addMeshObjectFromMap('WallMesh',value);
+        var o:DynamicAccess<Dynamic> = (value:DynamicAccess<Dynamic>).mapToMeshData('WallMesh');
+        var meshData:MeshData = o['meshdata'];
+        var materials:haxe.ds.Vector<MaterialData> = o['materials'];
+        Scene.active.addMeshObject(meshData,materials);
 
       }
 
