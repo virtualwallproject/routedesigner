@@ -25,7 +25,6 @@ class FrameTrait extends iron.Trait {
 
 	public function toggle_active() {
 		active = !active;
-		// trace('${object.name} is ${if (active) "" else "not"} active');
 	}
 
 	public function set_visible() {

@@ -46,7 +46,6 @@ class KhaKeyboard {
       joycon = devices[0].open();
       joyboard = new JoyconKeyboard(this,joycon.side == 'left');
       js.Syntax.code("this.joycon.on('change',() => {this.joyboard.onChange({0})})",joycon.buttons);
-      trace('joycon\n${joycon}');
     }
     #end
   }
