@@ -4,6 +4,8 @@ using arm.ObjectTools;
 using Lambda;
 
 import kha.FastFloat;
+import kha.Assets;
+import kha.Blob;
 import iron.object.Object;
 import iron.Scene;
 import iron.math.Vec4;
@@ -23,6 +25,7 @@ import arm.JsonWallTrait;
 class MasterFrameTrait extends iron.Trait {
 	var slave_frame:Object = null;
 	var json_wall:Object = null;
+	var bucket:Bucket = null;
 	#if arm_physics
 	var physics:PhysicsWorld;
 	#else
@@ -33,6 +36,8 @@ class MasterFrameTrait extends iron.Trait {
 	var slave_frame_name: String;
 	@prop
 	var mesh_name:String;
+	@prop
+	var bucket_name:String;
 	
 	public function new() {
 		super();
@@ -44,11 +49,20 @@ class MasterFrameTrait extends iron.Trait {
 		});
 		
 		notifyOnUpdate(function() {
-			if (slave_frame == null)
+			if (slave_frame == null) {
 				slave_frame = Scene.active.getChild(slave_frame_name);
+			}
 			if (json_wall == null) {
 				json_wall = Scene.active.getChild(mesh_name);
 				if (json_wall == null) Scene.active.spawnObject(mesh_name, null, null);
+			}
+			if (bucket == null) {
+				bucket = new Bucket();
+				Assets.loadBlob("bucket_arm", function (b:Blob) {
+					bucket.loadFromBytes(b.toBytes());
+					var temp_trait:SlaveFrameTrait = slave_frame.getTrait(SlaveFrameTrait);
+					temp_trait.load_bucket(bucket);
+				});
 			}
 		});
 		
@@ -72,6 +86,8 @@ class MasterFrameTrait extends iron.Trait {
 		
 		return null;
 	}
+	
+	public function get_bucket():Bucket return bucket;
 	
 	public function move_up() {
 		move_frame(

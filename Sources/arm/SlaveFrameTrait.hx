@@ -21,13 +21,12 @@ class SlaveFrameTrait extends iron.Trait {
 	var ape_materials:Array<MaterialData> = new Array();
 	var camera:CameraObject;
 	var tray_name:String = 'Tray';
+	var max_grips:Int;
 
 	@prop
 	var master_frame_name:String;
 	@prop
 	var spawned_parent_name: String;
-	@prop
-	var max_grips:Int = 30;
 	@prop
 	var rotation_step_deg:Float = 1;
 	@prop
@@ -48,7 +47,6 @@ class SlaveFrameTrait extends iron.Trait {
 			for (name in ['Yellow', 'Slimy Green', 'Blue', 'Red', 'Black']) {
 				Data.getMaterial("Scene", name, function(data:MaterialData) {
 					ape_materials.push(data);
-					// trace('Loaded material ${ape_materials[ape_materials.length].name}');
 				});
 			}
 
@@ -76,6 +74,22 @@ class SlaveFrameTrait extends iron.Trait {
 
 		// notifyOnRemove(function() {
 		// });
+	}
+
+	/**
+	 * Set frame properties that are related to a bucket of holds
+	 * @param bucket Bucket object with holds that this frame can spawn
+	 */
+	public function load_bucket(bucket:Bucket) {
+		if (bucket != null) {
+			max_grips = bucket.holds.length;
+			if (object.properties == null) {
+				object.properties = new Map<String, Dynamic>();
+			}
+			for (i in 0...max_grips) {
+				object.properties['grip_${i+1}'] = bucket.holds[i].get_name();
+			}
+		}
 	}
 
 	function grip_from_index(i:Int) {
@@ -236,6 +250,13 @@ class SlaveFrameTrait extends iron.Trait {
 		return Math.sqrt(3.0*Math.pow(max_s,2));
 	}
 
+	public function spawn_grip(name:String, parent:Object, done: Object->Void):Object {
+		var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
+		var temp:Object = bucket.spawnGripByName(name,parent,done);
+
+		return temp;
+	}
+
 	/**
 	 * This automatically activates any grip near to this frame
 	 */
@@ -271,7 +292,16 @@ class SlaveFrameTrait extends iron.Trait {
 		// spawn the new grip
 		if (next_grip != 0) {
 			var next_grip_name = object.properties['grip_${next_grip}'];
-			object.spawnGripByName(next_grip_name,spawned_parent);
+			spawn_grip(next_grip_name,spawned_parent,(grip:Object) -> {
+				// rotation
+				grip.transform.rot.setFrom(object.transform.rot);
+      
+				// translation
+				grip.transform.loc = object.transform.loc.clone();
+				
+				// update the transform
+				grip.transform.buildMatrix();
+			});
 		}
 
 		// set the current grip index to the next grip index

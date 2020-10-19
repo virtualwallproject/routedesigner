@@ -149,10 +149,10 @@ class TrayTrait extends iron.Trait {
 		if ((x < 0) || (x > w.width) || (y < 0) || (y > height)) return false;
 
 		// spawn grip if necessary
-		if (object.getChild(name) == null)
-			scene.spawnObject(name,object,null,false);
-
 		var temp:Object = object.getChild(name);
+		if (temp == null)
+			temp = object.parent.getTrait(SlaveFrameTrait).spawn_grip(name,object,null);
+
 		if (temp != null) {
 			// make it visible
 			temp.setVisibility(true);
@@ -196,7 +196,6 @@ class TrayTrait extends iron.Trait {
 				grip_i--;
 				if (grip_i%(slave_trait.get_max_grips() + 1) == 0)
 					grip_i = slave_trait.get_max_grips();
-				// trace('trying to add grip #${grip_i} at spot #${i}');
 				name = slave_trait.grip_name(grip_i);
 				added = add_grip_at(name,i);
 			}
@@ -208,7 +207,6 @@ class TrayTrait extends iron.Trait {
 				i++;
 				if (grip_i%(slave_trait.get_max_grips() + 1) == 0)
 					grip_i = 1;
-				// trace('trying to add grip #${grip_i} at spot #${i}');
 				name = slave_trait.grip_name(grip_i);
 				added = add_grip_at(name,i);
 				grip_i++;
