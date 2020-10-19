@@ -89,20 +89,6 @@ class ObjectTools {
     a.transform.setMatrix(b.clone());
     return true;
   }
-        
-  static public function spawnGripByName(a:Object,name:String,parent:Object) {
-    iron.Scene.active.spawnObject(
-      name, parent, function(grip:iron.object.Object) {
-      // rotation
-      grip.transform.rot.setFrom(a.transform.rot);
-      
-      // translation
-      grip.transform.loc = a.transform.loc.clone();
-      
-      // update the transform
-      grip.transform.buildMatrix();
-    });
-  }
           
   /* Sets the transform of grip b to a
   */
