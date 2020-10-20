@@ -44,7 +44,7 @@ class SlaveFrameTrait extends iron.Trait {
 				spawned_parent = scene.getChild(spawned_parent_name);
 			}
 
-			for (name in ['Yellow', 'Slimy Green', 'Blue', 'Red', 'Black']) {
+			for (name in ['Yellow', 'Green', 'Blue', 'Red', 'Black']) {
 				Data.getMaterial("Scene", name, function(data:MaterialData) {
 					ape_materials.push(data);
 				});
