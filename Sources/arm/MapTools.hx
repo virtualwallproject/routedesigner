@@ -1,5 +1,6 @@
 package arm;
 
+import iron.math.Vec4;
 import kha.internal.VoidCallback;
 import iron.object.MeshObject;
 import iron.data.Data;
@@ -33,6 +34,7 @@ class MapTools {
 
     // initialize variables we set in first for loop
 		var scale_pos:FastFloat = 1.0;
+		var center_pos:Array<FastFloat> = [0,0,0];
 		var num_verts:Int = 0;
 		var names:Array<String> = new Array<String>();
 
@@ -41,6 +43,11 @@ class MapTools {
 			if (id == "materials") {
 
 				names = data;
+
+			} else if (id == "center_pos") {
+
+				var array:Array<Dynamic> = data;
+				center_pos = [array[0],array[1],array[2]];
 
 			} else if (id == "scale_pos") scale_pos = data;
 			else if (id == "num_verts") num_verts = data;
@@ -91,6 +98,7 @@ class MapTools {
 		loadMaterials(names,temp['materials']);
 		temp['meshdata'] = new MeshData(rawmeshData,(data:MeshData) -> {});
 		temp['scale_pos'] = scale_pos;
+		temp['center_pos'] = new Vec4(center_pos[0],center_pos[1],center_pos[2]);
 
 		return temp;
   }

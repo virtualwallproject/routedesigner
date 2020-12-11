@@ -1,5 +1,6 @@
 package arm;
 
+import iron.object.Object;
 import iron.data.MaterialData;
 import iron.data.MeshData;
 using arm.MapTools;
@@ -72,12 +73,30 @@ class Wall {
 
       } else if (key == "mesh_data") {
 
-        var o:DynamicAccess<Dynamic> = (value:DynamicAccess<Dynamic>).mapToMeshData('WallMesh');
+        var temp:DynamicAccess<Dynamic> = value;
+        var o:DynamicAccess<Dynamic> = temp.mapToMeshData('WallMesh');
         var meshData:MeshData = o['meshdata'];
         var materials:haxe.ds.Vector<MaterialData> = o['materials'];
-        Scene.active.addMeshObject(meshData,materials);
+        var center_pos:Vec4 = o['center_pos'];
+        var mesh:Object = Scene.active.addMeshObject(meshData,materials);
+        mesh.transform.translate(center_pos.x,center_pos.y,center_pos.z);
 
-      }
+      } else if (key == "children") {
+
+        var child_index:Int = 0;
+        for (child_value in (value:DynamicAccess<Dynamic>)) {
+          var temp:DynamicAccess<Dynamic> = child_value;
+          var mesh_name:String = 'WallChildMesh${child_index}';
+          var o:DynamicAccess<Dynamic> = temp.mapToMeshData(mesh_name);
+          var meshData:MeshData = o['meshdata'];
+          var materials:haxe.ds.Vector<MaterialData> = o['materials'];
+          var center_pos:Vec4 = o['center_pos'];
+          var mesh:Object = Scene.active.addMeshObject(meshData,materials);
+          mesh.transform.translate(center_pos.x,center_pos.y,center_pos.z);
+          child_index++;
+        }
+
+      } 
 
     }
   }
