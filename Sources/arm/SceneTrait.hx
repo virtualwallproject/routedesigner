@@ -4,7 +4,7 @@ import kha.System;
 
 class SceneTrait extends iron.Trait {
 	var joycons:Int = 0;
-	var slug_name:String = "alphaboulder";
+	var slug_name:String = "Cornerstonenologo";
 
 	public function new() {
 		super();
