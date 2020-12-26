@@ -42,8 +42,11 @@ class KhaKeyboard {
     
     #if kha_js
     if (scene_trait.num_joycons() > 0) {
-      var devices:Dynamic = SwitchJoyCon.listConnectedJoyCons();
-      joycon = devices[0].open();
+      joycon = js.Syntax.code('window.openedjoycon');
+      if (joycon == null) {
+        var devices:Dynamic = SwitchJoyCon.listConnectedJoyCons();
+        joycon = devices[0].open();
+      }
       joyboard = new JoyconKeyboard(this,joycon.side == 'left');
       js.Syntax.code("this.joycon.on('change',() => {this.joyboard.onChange({0})})",joycon.buttons);
     }
