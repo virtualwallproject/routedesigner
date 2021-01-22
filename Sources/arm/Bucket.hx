@@ -1,8 +1,8 @@
 package arm;
 
+import iron.math.Vec4;
 import kha.FastFloat;
 import iron.object.Object;
-import iron.object.MeshObject;
 import iron.Scene;
 import haxe.io.Bytes;
 import haxe.Json;
@@ -10,6 +10,8 @@ import haxe.DynamicAccess;
 import iron.data.MeshData;
 import iron.data.MaterialData;
 import iron.system.ArmPack;
+
+import arm.Wall;
 
 using arm.MapTools;
 
@@ -20,7 +22,7 @@ class Bucket {
 	public function new() {
     holds = new Array<Hold>();
     names = new Map<String,Int>();
-	}
+  }
 
 	public function loadFromBytes(b:Bytes) {
 		var j:DynamicAccess<Dynamic> = ArmPack.decode(b);
@@ -34,10 +36,15 @@ class Bucket {
 	}
 	
 	function loadFromMap(m:DynamicAccess<Dynamic>) {
+    var isVolume = (n:DynamicAccess<Dynamic>) -> {
+      return n.exists('mesh_data');
+    };
+
 		for (key => value in m) {
-      holds.push(new Hold(key));
+      if (isVolume(value)) holds.push(new Volume(key));
+      else holds.push(new Hold(key));
       names[key] = holds.length-1;
-			var current_hold:Hold = holds[names[key]];
+			var current_hold = holds[names[key]];
 			current_hold.loadFromMap(value);
 		}
   }
@@ -46,6 +53,10 @@ class Bucket {
     var temp:Hold = holds[names[name]];
     var temp2:Object = Scene.active.addMeshObject(temp.get_data(),temp.get_materials(),parent);
     temp2.transform.dim.mult(temp.get_scale());
+    var center_pos:Vec4 = temp.get_center();
+    if (center_pos != null) {
+      temp2.transform.loc.add(center_pos);
+    }
     temp2.name = name;
     if (done != null) done(temp2);
 
@@ -70,11 +81,33 @@ class Hold {
   public function get_scale():FastFloat return scale_pos;
   
   public function get_materials():haxe.ds.Vector<MaterialData> return materials;
+
+  public function get_center():Vec4 return null;
 	
-	public function loadFromMap(m:DynamicAccess<Dynamic>) {
+	public function loadFromMap(m:DynamicAccess<Dynamic>):DynamicAccess<Dynamic> {
 		var o:DynamicAccess<Dynamic> = m.mapToMeshData(this.get_name());
 		meshData = o['meshdata'];
     materials = o['materials'];
     scale_pos = o['scale_pos'];
+
+    return o;
 	}
+}
+
+class Volume extends Hold {
+  var Wall:Wall = new Wall();
+  var center_pos:Vec4;
+
+  public function new(name:String) {
+    super(name);
+  }
+
+  public override function loadFromMap(m:DynamicAccess<Dynamic>):DynamicAccess<Dynamic> {
+    var o:DynamicAccess<Dynamic> = super.loadFromMap(m['mesh_data']);
+    center_pos = o['center_pos'];
+
+    return o;
+  }
+
+  public override function get_center():Vec4 return center_pos;
 }
