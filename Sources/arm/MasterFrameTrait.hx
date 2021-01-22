@@ -57,24 +57,34 @@ class MasterFrameTrait extends iron.Trait {
 				if (json_wall == null) Scene.active.spawnObject(mesh_name, null, null);
 			}
 			if (bucket == null) {
-				bucket = new Bucket();
-				Assets.loadBlob("bucket_arm", function (b:Blob) {
-					bucket.loadFromBytes(b.toBytes());
-					var temp_trait:SlaveFrameTrait = slave_frame.getTrait(SlaveFrameTrait);
-					temp_trait.load_bucket(bucket);
-				});
+				load_bucket();
 			}
 		});
 		
 		// notifyOnRemove(function() {
 		// });
-	}
+	}	
 	
 	function move_frame(x:Vec4,l_camera:Vec4) {
 		moveToNearbyTile(
 			x,
 			l_camera
 		);
+	}
+
+	function load_bucket() {
+		bucket = new Bucket();
+
+		// load the bucket of holds
+		Assets.loadBlob("bucket_arm", function (b:Blob) {
+			bucket.loadFromBytes(b.toBytes());
+			// add the volumes to the bucket
+			Assets.loadBlob("volumes_arm", function (b:Blob) {
+				bucket.loadFromBytes(b.toBytes());
+				var temp_trait:SlaveFrameTrait = slave_frame.getTrait(SlaveFrameTrait);
+				temp_trait.load_bucket(bucket);
+			});
+		});
 	}
 	
 	public function get_slave() return slave_frame;
