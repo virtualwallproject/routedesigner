@@ -297,7 +297,7 @@ class SlaveFrameTrait extends iron.Trait {
 				grip.transform.rot.setFrom(object.transform.rot);
       
 				// translation
-				grip.transform.loc = object.transform.loc.clone();
+				grip.transform.loc.applyQuat(object.transform.rot).add(object.transform.loc);
 				
 				// update the transform
 				grip.transform.buildMatrix();
