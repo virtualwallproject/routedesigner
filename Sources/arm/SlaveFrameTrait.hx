@@ -1,5 +1,6 @@
 package arm;
 
+import arm.Bucket.Volume;
 using arm.ObjectTools;
 
 import iron.Scene;
@@ -402,6 +403,27 @@ class SlaveFrameTrait extends iron.Trait {
 	public function get_max_grips():Int return this.max_grips;
 
 	public function get_tray():Object return this.object.getChild(tray_name);
+
+	/**
+	 * Returns the volumes that are currently on the wall
+	 * @return Array<Volume>
+	 */
+	public function get_volumes_used():Array<Volume> {
+		var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
+		var used_volumes:Array<Volume> = new Array<Volume>();
+
+		for (i in 0...used_grips.length) {
+			var grip:Object = grip_from_index(used_grips[i]);
+			var volume:Volume = bucket.get_volume(grip.name);
+			if (volume != null) {
+				used_volumes.push(volume);
+				// update the local transformation matrix for the volume
+				volume.set_local(grip.transform.local);
+			}
+		}
+
+		return used_volumes;
+	}
 
 	/**
 	 * Returns true if hold i is used
