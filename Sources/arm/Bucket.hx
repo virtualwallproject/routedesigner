@@ -1,5 +1,7 @@
 package arm;
 
+import iron.math.Mat4;
+import iron.math.Ray;
 import iron.math.Vec4;
 import kha.FastFloat;
 import iron.object.Object;
@@ -62,6 +64,13 @@ class Bucket {
 
     return temp2;
   }
+
+  public function get_volume(name:String):Volume {
+    var temp = holds[names[name]];
+    if (Std.is(temp,Volume)) return cast temp;
+    
+    return null;
+  }
 }
 
 class Hold {
@@ -91,11 +100,11 @@ class Hold {
     scale_pos = o['scale_pos'];
 
     return o;
-	}
+  }
 }
 
 class Volume extends Hold {
-  var Wall:Wall = new Wall();
+  var wall:Wall = new Wall();
   var center_pos:Vec4;
 
   public function new(name:String) {
@@ -105,9 +114,22 @@ class Volume extends Hold {
   public override function loadFromMap(m:DynamicAccess<Dynamic>):DynamicAccess<Dynamic> {
     var o:DynamicAccess<Dynamic> = super.loadFromMap(m['mesh_data']);
     center_pos = o['center_pos'];
+    
+    for (id => data in (m['panels']:DynamicAccess<Dynamic>)) {
+      var j:DynamicAccess<Dynamic> = data;
+      wall.panels.push(new Panel(Std.parseInt(id),j));
+    }
+
+    trace('Volume has ${wall.panels.length} panels');
 
     return o;
   }
 
   public override function get_center():Vec4 return center_pos;
+
+  public function cameraray_to_local(ray:Ray):Mat4 {
+    return wall.cameraray_to_local(ray);
+  }
+  
+  public function set_local(m:Mat4) wall.set_local(m);
 }
