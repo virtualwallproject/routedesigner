@@ -1,5 +1,6 @@
 package arm;
 
+import iron.object.Transform;
 import arm.Bucket.Volume;
 using arm.ObjectTools;
 
@@ -110,7 +111,13 @@ class SlaveFrameTrait extends iron.Trait {
 			object.transform.setMatrix(master_frame.transform.local);
 		else {
 			var grip:Object = grip_from_index(current_grip);
-			object.transformFrameToGrip(grip);
+
+			// scale the frame to object if it is a volume
+			var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
+			var volume:Volume = bucket.get_volume(grip.name);
+			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale()/object.FRAME_DIM();
+
+			object.transformFrameToGrip(grip,scale);
 		}
 	}
 
@@ -126,7 +133,13 @@ class SlaveFrameTrait extends iron.Trait {
 		next_grip = index;
 		if (current_grip != 0) {
 			var grip:Object = grip_from_index(current_grip);
-			object.transformFrameToGrip(grip);
+
+			// scale the frame to object if it is a volume
+			var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
+			var volume:Volume = bucket.get_volume(grip.name);
+			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale()/object.FRAME_DIM();
+
+			object.transformFrameToGrip(grip,scale);
 		} else {
 			update_transform();
 		}
@@ -328,9 +341,10 @@ class SlaveFrameTrait extends iron.Trait {
 	public function move_grip(a:Vec4) {
 		if (current_grip != 0) {
 			var grip:Object = grip_from_index(current_grip);
-			var scale:FastFloat = 0.1;
-			var b1:Vec4 = object.transform.right().clone();
-			var b2:Vec4 = object.transform.look().clone();
+			var temp:Transform = object.transform;
+			var scale:FastFloat = 0.002;
+			var b1:Vec4 = temp.right().clone().normalize();
+			var b2:Vec4 = temp.look().clone().normalize();
 			var v:Vec4 = b1.mult(a.dot(b1)).add(b2.mult(a.dot(b2)));
 			grip.transform.translate(scale*v.x,scale*v.y,scale*v.z);
 			if (grip.transform.loc.distanceTo(master_frame.transform.loc) >=

@@ -92,10 +92,15 @@ class ObjectTools {
           
   /* Sets the transform of grip b to a
   */
-  static public function transformFrameToGrip(a:Object,b:Object) {
+  static public function transformFrameToGrip(a:Object,b:Object,?scale:FastFloat=null) {
     if (b != null) {
       // set rotation from the grip
       a.transform.rot.setFrom(b.transform.rot);
+
+      // set the scale if it was passed
+      if (scale != null) {
+        a.transform.scale.set(scale,scale,scale);
+      }
       
       // translate
       a.transform.loc = b.transform.loc.clone();

@@ -1,5 +1,6 @@
 package arm;
 
+import iron.math.Quat;
 using Lambda;
 using arm.MapTools;
 
@@ -20,13 +21,21 @@ import arm.Panel;
 
 class Wall {
   public var panels:Array<Panel>;
-  var local:Mat4; // closest tnut local matrix, returned by hitray_to_local()
+  var tnut:Mat4; // closest tnut tnut matrix, returned by hitray_to_local()
+  var local:Mat4; // any transformation applied to the wall
   
   public function new() {
     panels = new Array<Panel>();
+    tnut = Mat4.identity();
     local = Mat4.identity();
   }
   
+  public function set_local(m:Mat4) {
+    local.setFrom(m);
+    local.toRotation();
+    local.setLoc(m.getLoc());
+  }
+
   public function loadFromJsonString(s:String) {
     //Parse value from stringy json
     var j:DynamicAccess<Dynamic> = Json.parse(s);
@@ -75,6 +84,14 @@ class Wall {
 
   public function ray_to_local(ray:Ray,f:Vec4->FastFloat,filter_fxn:Panel->Bool):Mat4 {
     if (ray == null) return null;
+
+    var mat_to_string:Mat4->String = (X:Mat4) -> {
+      var x:Mat4 = Mat4.identity();
+      x.setFrom(X);
+      x.toRotation();
+      x.setLoc(X.getLoc());
+      return '[[${x._00}, ${x._10}, ${x._20}, ${x._30}],\n[${x._01}, ${x._11}, ${x._21}, ${x._31}],\n[${x._02}, ${x._12}, ${x._22}, ${x._32}],\n[${x._03}, ${x._13}, ${x._23}, ${x._33}]]';
+    }
     
     var dist_to_ray:Vec4->FastFloat = f;
     var dist_to_center:Panel->FastFloat = function(x:Panel):FastFloat
@@ -112,29 +129,43 @@ class Wall {
     var max_dist:FastFloat =
       2*Math.max(panel.get_spacing().x,panel.get_spacing().y)*panel.get_scale();
     if (close_loc_dists[i] > max_dist) return null;
+
+    // get local wall frame components necessary for building tnut frame
+    var q:Quat = new Quat(); var l:Vec4 = new Vec4(); var s:Vec4 = new Vec4();
+    local.decompose(l,q,s);
     
-    // set local from the panel's quaternion
-    local.fromQuat(panel.get_quat());
+    // set tnut from the panel's quaternion
+    tnut.fromQuat(panel.get_quat());
+    tnut.applyQuat(q);
 
     // set the scale
     var s:Vec2 = panel.get_spacing();
     var scale:FastFloat = panel.get_scale()*(if (s.x >= s.y) s.x else s.y);
     scale = scale/ObjectTools.FRAME_DIM(null);
-    local.scale(new Vec4(scale,scale,scale));
+    tnut.scale(new Vec4(scale,scale,scale));
     
-    // set local location from the closest tnut location
+    // set tnut location from the closest tnut location
     var temp = panel.get_loc().map(dist_to_ray);
-    local.setLoc(panel.get_loc()[min_index(temp)]);
+    tnut.setLoc(panel.get_loc()[min_index(temp)]);
+    tnut.setLoc(tnut.getLoc().applyQuat(q).add(l));
     
-    return local;
+    return tnut;
   }
 
   public function cameraray_to_local(ray:Ray):Mat4 {
-    var dist_to_ray = function(x:Vec4) return ray.distanceToPoint(x);
-    var filter_fxn = function(x:Panel)
-      return x.get_normal().dot(ray.direction) < -1.0*Math.cos(75*Math.PI/180);
+    // transform the ray into the wall's local frame
+    var temp:Mat4 = Mat4.identity();
+    temp.setFrom(local).toRotation();
+    temp.getInverse(temp);
+    var local_ray:Ray = new Ray(ray.origin.clone(),ray.direction.clone());
+    local_ray.direction.applymat(temp);
+    local_ray.origin.add(local.getLoc().mult(-1)).applymat(temp);
 
-    return ray_to_local(ray,dist_to_ray,filter_fxn);
+    var dist_to_ray = function(x:Vec4) return local_ray.distanceToPoint(x);
+    var filter_fxn = function(x:Panel)
+      return x.get_normal().dot(local_ray.direction) < -1.0*Math.cos(75*Math.PI/180);
+
+    return ray_to_local(local_ray,dist_to_ray,filter_fxn);
   }
   
   public function hitray_to_local(ray:Ray):Mat4 {

@@ -1,5 +1,6 @@
 package arm;
 
+using Lambda;
 using arm.ObjectTools;
 
 import kha.FastFloat;
@@ -119,6 +120,7 @@ class CameraTrait extends iron.Trait {
 		if (frame != null) {
 			var master = frame.getTrait(MasterFrameTrait);
 			if (master.get_wall() != null) {
+				var closest_locals:Array<Mat4> = new Array<Mat4>();
 				var start = new Vec4();
 				var end = new Vec4();
 				// set the start and end vectors based on screen location
@@ -127,11 +129,34 @@ class CameraTrait extends iron.Trait {
 				#if arm_physics
 				var hit = physics.rayCast(camera.transform.world.getLoc(), end);
 				var ray:Ray = PhysicsTools.hitToRay(hit,physics);
-				return master.get_wall().hitray_to_local(ray);
+				closest_locals.push(master.get_wall().hitray_to_local(ray);
 				#else
 				var ray:Ray = PhysicsTools.pointsToRay(start,end);
-				return master.get_wall().cameraray_to_local(ray);
+				closest_locals.push(master.get_wall().cameraray_to_local(ray));
 				#end
+
+				for (i => v in master.get_slave().getTrait(SlaveFrameTrait).get_volumes_used()) {
+					var temp:Mat4 = v.cameraray_to_local(ray);
+					if (temp != null) closest_locals.push(temp);
+				}
+
+				// this code is mostly copied over from Wall.ray_to_local
+				// but modified now to make sure we pick the tnut closer to the camera
+				// only if the possible locations are both close to the ray
+				var dist_to_ray = (x:Mat4) -> {
+					var hyp:FastFloat = ray.origin.distanceTo(x.getLoc());
+					var opp:FastFloat = ray.distanceToPoint(x.getLoc());
+					if (Math.asin(opp/hyp) < 5.0*Math.PI/180.0) {
+						return camera.transform.world.getLoc().distanceTo(x.getLoc());
+					} else {
+						return Math.POSITIVE_INFINITY;
+					}
+				}
+				var min_index = function(x:Array<FastFloat>):Int
+					return x.indexOf(x.fold(Math.min, x[0]));
+				var loc_distances:Array<FastFloat> = closest_locals.map(dist_to_ray);
+
+				return closest_locals[min_index(loc_distances)];
 			}
 		}
 		
