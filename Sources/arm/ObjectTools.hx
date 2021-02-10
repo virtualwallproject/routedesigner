@@ -26,6 +26,20 @@ class ObjectTools {
       else child.visible = a.visible;
     }
   }
+
+  static public function find_descendant(a:Object,name:String):Object {
+    var descendants:Array<Object> = a.getChildren();
+    var i = 0;
+		while (i < descendants.length) {
+			if (descendants[i].name == name) {
+				return descendants[i];
+			}
+			descendants = descendants.concat(descendants[i].children);
+			i++;
+		}
+
+		return null;
+  }
   
   static public function hasQuatProps(a:Object) {
     if ((a == null) || (a.properties == null)) return false;
