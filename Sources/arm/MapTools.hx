@@ -1,8 +1,6 @@
 package arm;
 
 import iron.math.Vec4;
-import kha.internal.VoidCallback;
-import iron.object.MeshObject;
 import iron.data.Data;
 import kha.FastFloat;
 import kha.arrays.Int16Array;
