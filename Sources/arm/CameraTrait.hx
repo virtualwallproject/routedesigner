@@ -1,5 +1,6 @@
 package arm;
 
+import iron.math.Quat;
 using Lambda;
 using arm.ObjectTools;
 
@@ -24,6 +25,7 @@ import armory.trait.physics.PhysicsWorld;
 import arm.CameraPath;
 import arm.CameraSurface;
 import arm.PhysicsTools;
+import arm.Bucket.Volume;
 
 class CameraTrait extends iron.Trait {
 	var w:Window;
@@ -135,7 +137,9 @@ class CameraTrait extends iron.Trait {
 				closest_locals.push(master.get_wall().cameraray_to_local(ray));
 				#end
 
-				for (i => v in master.get_slave().getTrait(SlaveFrameTrait).get_volumes_used()) {
+				var slave_trait:SlaveFrameTrait = master.get_slave().getTrait(SlaveFrameTrait);
+				var volumes:Array<Volume> = slave_trait.get_volumes_used();
+				for (i => v in volumes) {
 					var temp:Mat4 = v.cameraray_to_local(ray);
 					if (temp != null) closest_locals.push(temp);
 				}
@@ -155,8 +159,19 @@ class CameraTrait extends iron.Trait {
 				var min_index = function(x:Array<FastFloat>):Int
 					return x.indexOf(x.fold(Math.min, x[0]));
 				var loc_distances:Array<FastFloat> = closest_locals.map(dist_to_ray);
+				var closest_i:Int = min_index(loc_distances);
 
-				return closest_locals[min_index(loc_distances)];
+				if (closest_i > 0) {
+					// set the spawned parent remember that the first element of loc
+					// distances is default spawned parent so index must be reduced by 1
+					slave_trait.set_parent(volumes[closest_i-1].get_name());
+					// apply the inverse of the parent transformation
+					closest_locals[closest_i].multmat(Mat4.identity().getInverse(slave_trait.object.parent.transform.local));
+				} else {
+					slave_trait.reset_parent();
+				}
+
+				return closest_locals[closest_i];
 			}
 		}
 		
@@ -181,7 +196,7 @@ class CameraTrait extends iron.Trait {
 
 				// get rays pointing to touched location and the slave frame
 				var input_ray:Ray = PhysicsTools.pointsToRay(start,end);
-				var frame_ray:Ray = PhysicsTools.pointsToRay(start,master.get_slave().transform.loc);
+				var frame_ray:Ray = PhysicsTools.pointsToRay(start,master.get_slave().transform.world.getLoc());
 
 				return input_ray.direction.dot(frame_ray.direction);
 			}
@@ -212,7 +227,7 @@ class CameraTrait extends iron.Trait {
 
 				var input0:Ray = PhysicsTools.pointsToRay(start,xy0);
 				var input1:Ray = PhysicsTools.pointsToRay(start,xy1);
-				var frame_ray:Ray = PhysicsTools.pointsToRay(start,master.get_slave().transform.loc);
+				var frame_ray:Ray = PhysicsTools.pointsToRay(start,master.get_slave().transform.world.getLoc());
 
 				var check0:FastFloat = input0.direction.dot(frame_ray.direction);
 

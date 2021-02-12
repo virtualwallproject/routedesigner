@@ -10,7 +10,7 @@ class FrameTrait extends iron.Trait {
 		super();
 
 		notifyOnInit(function() {
-			object.transform.localOnly = true;
+			object.transform.localOnly = false;
 		});
 
 		notifyOnUpdate(function() {
