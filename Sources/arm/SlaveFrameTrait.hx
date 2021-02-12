@@ -1,14 +1,17 @@
 package arm;
 
+import iron.math.Mat4;
 import iron.object.Transform;
 import arm.Bucket.Volume;
 using arm.ObjectTools;
 
 import iron.Scene;
 import iron.data.MaterialData;
+import iron.data.MeshData;
 import iron.math.Vec4;
 import iron.object.Object;
 import iron.object.CameraObject;
+import iron.object.MeshObject;
 import iron.data.Data;
 
 import kha.FastFloat;
@@ -42,9 +45,10 @@ class SlaveFrameTrait extends iron.Trait {
 			camera = scene.camera;
 
 			master_frame = scene.getChild(master_frame_name);
-			if ((spawned_parent_name != null) && (spawned_parent_name != "")) {
-				spawned_parent = scene.getChild(spawned_parent_name);
-			}
+			
+			if ((spawned_parent_name != null) && (spawned_parent_name != ""))
+				spawned_parent = Scene.active.root.find_descendant(spawned_parent_name);
+			reset_parent();
 
 			for (name in ['Yellow', 'Green', 'Blue', 'Red', 'Black']) {
 				Data.getMaterial("Scene", name, function(data:MaterialData) {
@@ -58,7 +62,7 @@ class SlaveFrameTrait extends iron.Trait {
 		});
 
 		notifyOnUpdate(function() {
-			if (master_frame.transform.diff()){
+			if (master_frame.transform.diff()) {
 				update_transform();
 			} else if ((object.visible) && (current_grip != next_grip)) {
 				update_grip();
@@ -94,8 +98,22 @@ class SlaveFrameTrait extends iron.Trait {
 		}
 	}
 
-	function grip_from_index(i:Int) {
-		return spawned_parent.getChild(object.properties['grip_${i}']);
+	public function get_spawned_parent():Object return spawned_parent;
+
+	public function reset_parent() object.parent = spawned_parent;
+
+	public function set_parent(name:String) {
+		trace('setting parent ${name} from parent ${spawned_parent.name}');
+		var temp:Object = spawned_parent.find_descendant(name);
+
+		if (temp != null) object.parent = temp;
+		else reset_parent();
+		
+		return (object.parent == null) ? false : true;
+	}
+
+	function grip_from_index(i:Int):Object {
+		return spawned_parent.find_descendant(object.properties['grip_${i}']);
 	}
 
 	public function grip_name(i:Int):String {
@@ -258,7 +276,7 @@ class SlaveFrameTrait extends iron.Trait {
 	 * [Description] Return the spherical radius of the sphere containing the 
 	 * master frame
 	 */
-	function r() {
+	function r():FastFloat {
 		var s:Vec4 = master_frame.transform.scale;
 		var max_s:FastFloat = if (s.x >= s.y) s.x else s.y;
 		return Math.sqrt(3.0*Math.pow(max_s,2));
@@ -280,7 +298,9 @@ class SlaveFrameTrait extends iron.Trait {
 		var r:FastFloat = r();
 		while ((inside_grip == null) && (i < used_grips.length)) {
 			var grip:Object = grip_from_index(used_grips[i]);
-			if (grip.transform.loc.distanceTo(master_frame.transform.loc) < r) {
+			var mesh:MeshObject = cast(grip,MeshObject);
+			if (grip.transform.loc.distanceTo(master_frame.transform.loc) <
+				Math.max(mesh.data.scalePos,r)) {
 				inside_grip = grip;
 			} else {
 				i++;
@@ -306,7 +326,7 @@ class SlaveFrameTrait extends iron.Trait {
 		// spawn the new grip
 		if (next_grip != 0) {
 			var next_grip_name = object.properties['grip_${next_grip}'];
-			spawn_grip(next_grip_name,spawned_parent,(grip:Object) -> {
+			spawn_grip(next_grip_name,object.parent,(grip:Object) -> {
 				// rotation
 				grip.transform.rot.setFrom(object.transform.rot);
       
@@ -329,7 +349,8 @@ class SlaveFrameTrait extends iron.Trait {
 	public function rotate_grip(angle:FastFloat) {
 		if (current_grip != 0) {
 			var grip:Object = grip_from_index(current_grip);
-			grip.transform.rotate(grip.transform.up(),angle);
+			var temp:Mat4 = grip.transform.local;//Mat4.identity().setFrom(grip.transform.local).toRotation();
+			grip.transform.rotate(temp.up(),angle);
 			object.transformFrameToGrip(grip);
 		}
 	}
@@ -341,17 +362,20 @@ class SlaveFrameTrait extends iron.Trait {
 	public function move_grip(a:Vec4) {
 		if (current_grip != 0) {
 			var grip:Object = grip_from_index(current_grip);
-			var temp:Transform = object.transform;
+
+			// transform the vector into the grip's local frame
+			var temp:Mat4 = Mat4.identity();
+			temp.setFrom(grip.parent.transform.world).toRotation();
+			temp.getInverse(temp);
+			var local_a:Vec4 = a.clone();
+			local_a.applymat(temp);
+
+			temp = Mat4.identity().setFrom(grip.transform.local).toRotation();
 			var scale:FastFloat = 0.002;
-			var b1:Vec4 = temp.right().clone().normalize();
-			var b2:Vec4 = temp.look().clone().normalize();
-			var v:Vec4 = b1.mult(a.dot(b1)).add(b2.mult(a.dot(b2)));
+			var b1:Vec4 = temp.right();
+			var b2:Vec4 = temp.look();
+			var v:Vec4 = b1.mult(local_a.dot(b1)).add(b2.mult(local_a.dot(b2)));
 			grip.transform.translate(scale*v.x,scale*v.y,scale*v.z);
-			if (grip.transform.loc.distanceTo(master_frame.transform.loc) >=
-				r()) {
-				scale = -scale;
-				grip.transform.translate(scale*v.x,scale*v.y,scale*v.z);
-			}
 			object.transformFrameToGrip(grip);
 		}
 	}
