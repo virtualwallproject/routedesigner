@@ -62,12 +62,12 @@ class SlaveFrameTrait extends iron.Trait {
 		});
 
 		notifyOnUpdate(function() {
-			if (master_frame.transform.diff()) {
-				update_transform();
-			} else if ((object.visible) && (current_grip != next_grip)) {
+			if ((object.visible) && (current_grip != next_grip)) {
 				update_grip();
 			} else if ((!object.visible) && (current_grip != 0)) {
 				add_to_used();
+			} else if (master_frame.transform.diff()) {
+				update_transform();
 			}
 		});
 
@@ -100,20 +100,24 @@ class SlaveFrameTrait extends iron.Trait {
 
 	public function get_spawned_parent():Object return spawned_parent;
 
-	public function reset_parent() object.parent = spawned_parent;
+	public function reset_parent() {
+		if (object.parent != Scene.active.root) object.parent.removeChild(object);
+		spawned_parent.addChild(object);
+	}
 
 	public function set_parent(name:String) {
-		trace('setting parent ${name} from parent ${spawned_parent.name}');
 		var temp:Object = spawned_parent.find_descendant(name);
-
-		if (temp != null) object.parent = temp;
-		else reset_parent();
+		
+		if (temp != null) {
+			object.parent.removeChild(object);
+			temp.addChild(object);
+		}	else reset_parent();
 		
 		return (object.parent == null) ? false : true;
 	}
 
 	function grip_from_index(i:Int):Object {
-		return spawned_parent.find_descendant(object.properties['grip_${i}']);
+		return spawned_parent.find_descendant(object.properties['grip_${i}'],[object]);
 	}
 
 	public function grip_name(i:Int):String {
@@ -320,7 +324,9 @@ class SlaveFrameTrait extends iron.Trait {
 		// remove the old grip from scene
 		if (current_grip != 0){
 			var grip:Object = grip_from_index(current_grip);
-			grip.remove();
+			if (grip != null) {
+				grip.remove();
+			}
 		}
 
 		// spawn the new grip
@@ -473,14 +479,60 @@ class SlaveFrameTrait extends iron.Trait {
 	/**
 	 * [Description]
 	 * @param id The int id of the grip to be removed
-	 * @return Bool If the grip was removed
+	 * @return Array of ids removed (original id and all descendants)
 	 */
-	public function remove_grip(id:Int):Bool {
-		if (used_grips.remove(id)) {
+	public function remove_grip(id:Int):Array<Int> {
+		var temp:Array<Int> = used_grips.concat([get_current_grip()]);
+		var removed_ids:Array<Int> = [];
+
+		if (temp.contains(id)) {
+			var parent_reset:Bool = false;
+			var current_reset:Bool = false;
+
 			var grip:Object = grip_from_index(id);
-			grip.remove();
-			return true;
-		} else return false;
+
+			var ds:Array<Object> = [grip].concat(grip.descendants());
+			if (ds.remove(object)) {
+				reset_parent();
+				parent_reset = true;
+				ds = [grip].concat(grip.descendants());
+			}
+			var ds_names:Array<String> = ds.map((o:Object) -> (o.name));
+
+			var temp_names:Array<String> = temp.map((i:Int) -> (grip_name(i)));
+
+			ds.reverse();
+			for (d in ds) {
+				var i:Int = temp_names.indexOf(d.name);
+				if (i >= 0) {
+					if (i == (temp.length - 1)) {
+						show_grip(0);
+						current_reset = true;
+					} else {
+						used_grips.remove(temp[i]);
+						for (c in d.children) {
+							d.removeChild(c);
+						}
+						d.remove();
+					}
+					removed_ids.push(temp[i]);
+				} else {
+					trace('Error: Removing object ${d.name} that is not a used grip!');
+				}
+			}
+
+			if ((parent_reset) && (current_reset)) {
+				var camera_trait:CameraTrait = camera.getTrait(CameraTrait);
+				camera_trait.pickClosestFrame(0,0,0);
+				master_frame.transformFrame(camera_trait.pickClosestFrame(
+					object.transform.worldx(),
+					object.transform.worldy(),
+					object.transform.worldz()
+				));
+			}
+		}
+
+		return removed_ids;
 	}
 
 	public function remove_grips() {

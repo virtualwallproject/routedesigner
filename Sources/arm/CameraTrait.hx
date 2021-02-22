@@ -118,15 +118,20 @@ class CameraTrait extends iron.Trait {
 	
 	public function move_up(s:FastFloat=1.0) surf.increment_z(s);
 	
-	public function pickClosestFrame(inputX:FastFloat, inputY:FastFloat):Mat4 {
+	public function pickClosestFrame(inputX:FastFloat, inputY:FastFloat, ?inputZ:FastFloat):Mat4 {
 		if (frame != null) {
 			var master = frame.getTrait(MasterFrameTrait);
 			if (master.get_wall() != null) {
 				var closest_locals:Array<Mat4> = new Array<Mat4>();
 				var start = new Vec4();
 				var end = new Vec4();
-				// set the start and end vectors based on screen location
-				RayCaster.getDirection(start, end, inputX, inputY, camera);
+				if (inputZ == null) {
+					// set the start and end vectors based on screen location
+					RayCaster.getDirection(start, end, inputX, inputY, camera);
+				} else {
+					start.setFrom(camera.transform.loc);
+					end.set(inputX,inputY,inputZ);
+				}
 
 				#if arm_physics
 				var hit = physics.rayCast(camera.transform.world.getLoc(), end);
@@ -141,20 +146,21 @@ class CameraTrait extends iron.Trait {
 				var volumes:Array<Volume> = slave_trait.get_volumes_used();
 				for (i => v in volumes) {
 					var temp:Mat4 = v.cameraray_to_local(ray);
-					if (temp != null) closest_locals.push(temp);
+					closest_locals.push(temp);
 				}
 
 				// this code is mostly copied over from Wall.ray_to_local
 				// but modified now to make sure we pick the tnut closer to the camera
 				// only if the possible locations are both close to the ray
 				var dist_to_ray = (x:Mat4) -> {
-					var hyp:FastFloat = ray.origin.distanceTo(x.getLoc());
-					var opp:FastFloat = ray.distanceToPoint(x.getLoc());
-					if (Math.asin(opp/hyp) < 5.0*Math.PI/180.0) {
-						return camera.transform.world.getLoc().distanceTo(x.getLoc());
-					} else {
-						return Math.POSITIVE_INFINITY;
+					if (x != null) {
+						var hyp:FastFloat = ray.origin.distanceTo(x.getLoc());
+						var opp:FastFloat = ray.distanceToPoint(x.getLoc());
+						if (Math.asin(opp/hyp) < 5.0*Math.PI/180.0) {
+							return camera.transform.world.getLoc().distanceTo(x.getLoc());
+						}
 					}
+					return Math.POSITIVE_INFINITY;
 				}
 				var min_index = function(x:Array<FastFloat>):Int
 					return x.indexOf(x.fold(Math.min, x[0]));

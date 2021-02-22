@@ -27,14 +27,29 @@ class ObjectTools {
     }
   }
 
-  static public function find_descendant(a:Object,name:String):Object {
+  static public function descendants(a:Object,?exclude:Array<Object>):Array<Object> {
+    var descendants:Array<Object> = a.getChildren();
+    var i = 0;
+		while (i < descendants.length) {
+      if ((exclude == null) || (!exclude.contains(descendants[i]))) {
+			  descendants = descendants.concat(descendants[i].children);
+      }
+			i++;
+		}
+
+		return descendants;
+  }
+
+  static public function find_descendant(a:Object,name:String,?exclude:Array<Object>):Object {
     var descendants:Array<Object> = a.getChildren();
     var i = 0;
 		while (i < descendants.length) {
 			if (descendants[i].name == name) {
 				return descendants[i];
 			}
-			descendants = descendants.concat(descendants[i].children);
+      if ((exclude == null) || (!exclude.contains(descendants[i]))) {
+        descendants = descendants.concat(descendants[i].children);
+      }
 			i++;
 		}
 

@@ -207,6 +207,7 @@ class SurfaceSendEvents extends iron.Trait {
       icons_clicked = true;
     } else if (tray_trait != null) {
       if (showtray_icon_trait.is_clicked(click.x,click.y) || hidetray_icon_trait.is_clicked(click.x,click.y)) {
+        
         tray_trait.toggle_grips();
         icons_clicked = true;
 
@@ -217,11 +218,12 @@ class SurfaceSendEvents extends iron.Trait {
       } else {
         var clicked_grip:Int = Std.int(tray_trait.is_clicked(click.x,click.y));
         if (clicked_grip != 0) {
-          if (slave_trait.remove_grip(clicked_grip)) {
-            tray_trait.remove_remove(clicked_grip);
-          } else if (clicked_grip == slave_trait.get_current_grip()) {
-            tray_trait.remove_remove(clicked_grip);
-            slave_trait.show_grip(0);
+
+          var remove_ids:Array<Int> = slave_trait.remove_grip(clicked_grip);
+          if (remove_ids.length > 0) {
+            for (i in remove_ids) {
+              tray_trait.remove_remove(i);
+            }
           } else {
             slave_trait.show_grip(clicked_grip);
           }
