@@ -8,8 +8,6 @@ import iron.data.MaterialData;
 import kha.FastFloat;
 
 class ObjectTools {
-  static public function FRAME_DIM(a:Object):FastFloat return 2.0;
-
   /**
    * Set the visibility of object and all of its children
    * @param a 
@@ -108,34 +106,6 @@ class ObjectTools {
       a.transform.buildMatrix();
       
       trace ('${a.name} has been fixed');
-    }
-  }
-    
-  static public function transformFrame(a:Object,b:Mat4):Bool {
-    // sets the transform b to the frame a
-    if (b == null) return false;
-
-    a.transform.setMatrix(b.clone());
-    return true;
-  }
-          
-  /* Sets the transform of grip b to a
-  */
-  static public function transformFrameToGrip(a:Object,b:Object,?scale:FastFloat=null) {
-    if (b != null) {
-      // set rotation from the grip
-      a.transform.rot.setFrom(b.transform.rot);
-
-      // set the scale if it was passed
-      if (scale != null) {
-        a.transform.scale.set(scale,scale,scale);
-      }
-      
-      // translate
-      a.transform.loc = b.transform.loc.clone();
-      
-      // update the transform
-      a.transform.buildMatrix();
     }
   }
           
