@@ -1,13 +1,11 @@
 package arm;
 
 import iron.math.Mat4;
-import iron.object.Transform;
 import arm.Bucket.Volume;
 using arm.ObjectTools;
 
 import iron.Scene;
 import iron.data.MaterialData;
-import iron.data.MeshData;
 import iron.math.Vec4;
 import iron.object.Object;
 import iron.object.CameraObject;
@@ -137,9 +135,9 @@ class SlaveFrameTrait extends iron.Trait {
 			// scale the frame to object if it is a volume
 			var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
 			var volume:Volume = bucket.get_volume(grip.name);
-			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale()/object.FRAME_DIM();
-
-			object.transformFrameToGrip(grip,scale);
+			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale();
+			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
+			frame_trait.transformFrameToGrip(grip,scale);
 		}
 	}
 
@@ -159,9 +157,9 @@ class SlaveFrameTrait extends iron.Trait {
 			// scale the frame to object if it is a volume
 			var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
 			var volume:Volume = bucket.get_volume(grip.name);
-			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale()/object.FRAME_DIM();
-
-			object.transformFrameToGrip(grip,scale);
+			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale();
+			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
+			frame_trait.transformFrameToGrip(grip,scale);
 		} else {
 			update_transform();
 		}
@@ -357,7 +355,8 @@ class SlaveFrameTrait extends iron.Trait {
 			var grip:Object = grip_from_index(current_grip);
 			var temp:Mat4 = grip.transform.local;//Mat4.identity().setFrom(grip.transform.local).toRotation();
 			grip.transform.rotate(temp.up(),angle);
-			object.transformFrameToGrip(grip);
+			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
+			frame_trait.transformFrameToGrip(grip);
 		}
 	}
 
@@ -382,7 +381,8 @@ class SlaveFrameTrait extends iron.Trait {
 			var b2:Vec4 = temp.look();
 			var v:Vec4 = b1.mult(local_a.dot(b1)).add(b2.mult(local_a.dot(b2)));
 			grip.transform.translate(scale*v.x,scale*v.y,scale*v.z);
-			object.transformFrameToGrip(grip);
+			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
+			frame_trait.transformFrameToGrip(grip);
 		}
 	}
 
@@ -523,8 +523,8 @@ class SlaveFrameTrait extends iron.Trait {
 
 			if ((parent_reset) && (current_reset)) {
 				var camera_trait:CameraTrait = camera.getTrait(CameraTrait);
-				camera_trait.pickClosestFrame(0,0,0);
-				master_frame.transformFrame(camera_trait.pickClosestFrame(
+				var frame_trait:FrameTrait = master_frame.getTrait(FrameTrait);
+				frame_trait.transformFrame(camera_trait.pickClosestFrame(
 					object.transform.worldx(),
 					object.transform.worldy(),
 					object.transform.worldz()

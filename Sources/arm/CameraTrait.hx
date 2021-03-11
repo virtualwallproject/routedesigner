@@ -1,8 +1,6 @@
 package arm;
 
-import iron.math.Quat;
 using Lambda;
-using arm.ObjectTools;
 
 import kha.FastFloat;
 import kha.Window;
@@ -251,7 +249,8 @@ class CameraTrait extends iron.Trait {
 	}
 	
 	public function click_frame(x:FastFloat, y:FastFloat):Bool {
-		return frame.transformFrame(pickClosestFrame(x,y));
+		var frame_trait:FrameTrait = frame.getTrait(FrameTrait);
+		return frame_trait.transformFrame(pickClosestFrame(x,y));
 	}
 
 	public function click_hold(x:FastFloat, y:FastFloat):Bool {

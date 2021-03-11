@@ -1,6 +1,5 @@
 package arm;
 
-using arm.ObjectTools;
 using Lambda;
 
 import kha.FastFloat;
@@ -9,7 +8,6 @@ import kha.Blob;
 import iron.object.Object;
 import iron.Scene;
 import iron.math.Vec4;
-import iron.math.Quat;
 import iron.math.Ray;
 #if arm_physics
 #if arm_oimo
@@ -151,13 +149,14 @@ class MasterFrameTrait extends iron.Trait {
 		l.add(x);
 		
 		// cast the ray and get the hit and make a ray from it
+		var frame_trait:FrameTrait = object.getTrait(FrameTrait);
 		#if arm_physics
 		var hit = physics.rayCast(l_camera,l);
 		var ray:Ray = PhysicsTools.hitToRay(hit,physics);
-		return object.transformFrame(get_wall().hitray_to_local(ray));
+		return frame_trait.transformFrame(get_wall().hitray_to_local(ray));
 		#else
 		var ray:Ray = PhysicsTools.pointsToRay(l_camera,l);
-		return object.transformFrame(get_wall().cameraray_to_local(ray));
+		return frame_trait.transformFrame(get_wall().cameraray_to_local(ray));
 		#end
 
 		return false;

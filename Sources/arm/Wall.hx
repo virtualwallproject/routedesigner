@@ -141,7 +141,6 @@ class Wall {
     // set the scale
     var s:Vec2 = panel.get_spacing();
     var scale:FastFloat = panel.get_scale()*(if (s.x >= s.y) s.x else s.y);
-    scale = scale/ObjectTools.FRAME_DIM(null);
     tnut.scale(new Vec4(scale,scale,scale));
     
     // set tnut location from the closest tnut location
