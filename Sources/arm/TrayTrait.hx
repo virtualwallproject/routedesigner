@@ -8,6 +8,7 @@ import iron.Scene;
 import kha.Window;
 import iron.object.CameraObject;
 import iron.object.Object;
+import iron.object.MeshObject;
 import kha.FastFloat;
 import iron.math.Quat;
 
@@ -279,7 +280,8 @@ class TrayTrait extends iron.Trait {
 				remove_icon.transform.scale.mult(1/i_scale.x);
 				set_tray_loc(remove_icon.transform.loc,screen_loc.x,1*screen_loc.y);
 				remove_icon.transform.buildMatrix();
-				remove_icon.transform.move(Vec4.zAxis(),0.1);
+				var mesh:MeshObject = cast(b,MeshObject);
+				remove_icon.transform.move(Vec4.zAxis(),mesh.data.scalePos);
 				b.flatten();
 			}
 		}
