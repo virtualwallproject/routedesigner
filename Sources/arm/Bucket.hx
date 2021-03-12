@@ -65,6 +65,11 @@ class Bucket {
     return temp2;
   }
 
+  /**
+   * Returns a volume if one of the given name exists
+   * @param name Name of the volume to look for
+   * @return Volume or null if not found or it is not a volume
+   */
   public function get_volume(name:String):Volume {
     var temp = holds[names[name]];
     if (Std.is(temp,Volume)) return cast temp;
