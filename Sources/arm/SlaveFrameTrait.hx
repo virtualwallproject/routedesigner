@@ -1,6 +1,7 @@
 package arm;
 
 import iron.math.Mat4;
+import arm.Bucket.Bucket;
 import arm.Bucket.Volume;
 using arm.ObjectTools;
 
@@ -25,6 +26,7 @@ class SlaveFrameTrait extends iron.Trait {
 	var camera:CameraObject;
 	var tray_name:String = 'Tray';
 	var max_grips:Int;
+	var bucket:Bucket;
 
 	@prop
 	var master_frame_name:String;
@@ -93,6 +95,7 @@ class SlaveFrameTrait extends iron.Trait {
 			for (i in 0...max_grips) {
 				object.properties['grip_${i+1}'] = bucket.holds[i].get_name();
 			}
+			this.bucket = bucket;
 		}
 	}
 
@@ -133,7 +136,6 @@ class SlaveFrameTrait extends iron.Trait {
 			var grip:Object = grip_from_index(current_grip);
 
 			// scale the frame to object if it is a volume
-			var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
 			var volume:Volume = bucket.get_volume(grip.name);
 			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale();
 			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
@@ -155,7 +157,6 @@ class SlaveFrameTrait extends iron.Trait {
 			var grip:Object = grip_from_index(current_grip);
 
 			// scale the frame to object if it is a volume
-			var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
 			var volume:Volume = bucket.get_volume(grip.name);
 			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale();
 			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
@@ -285,14 +286,13 @@ class SlaveFrameTrait extends iron.Trait {
 	}
 
 	public function spawn_grip(name:String, parent:Object, done: Object->Void):Object {
-		var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
 		var temp:Object = bucket.spawnGripByName(name,parent,done);
 
 		return temp;
 	}
 
 	/**
-	 * This automatically activates any grip near to this frame
+	 * Activate first grip in used grips that is close to the master frame
 	 */
 	public function activate_grip() {
 		var inside_grip:Object = null;
@@ -301,8 +301,9 @@ class SlaveFrameTrait extends iron.Trait {
 		while ((inside_grip == null) && (i < used_grips.length)) {
 			var grip:Object = grip_from_index(used_grips[i]);
 			var mesh:MeshObject = cast(grip,MeshObject);
-			if (grip.transform.loc.distanceTo(master_frame.transform.loc) <
-				Math.max(mesh.data.scalePos,r)) {
+			var loc:(Object) -> Vec4 = (o:Object) -> o.transform.loc;
+			var d:FastFloat = loc(grip).distanceTo(loc(master_frame));
+			if (d < Math.max(1.5*mesh.data.scalePos,r)) {
 				inside_grip = grip;
 			} else {
 				i++;
@@ -453,7 +454,6 @@ class SlaveFrameTrait extends iron.Trait {
 	 * @return Array<Volume>
 	 */
 	public function get_volumes_used():Array<Volume> {
-		var bucket:Bucket = master_frame.getTrait(MasterFrameTrait).get_bucket();
 		var used_volumes:Array<Volume> = new Array<Volume>();
 
 		for (i in 0...used_grips.length) {
