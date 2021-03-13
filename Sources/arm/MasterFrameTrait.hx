@@ -1,6 +1,8 @@
 package arm;
 
+import iron.math.Mat4;
 using Lambda;
+using arm.MatrixTools;
 
 import kha.FastFloat;
 import kha.Assets;
@@ -140,26 +142,31 @@ class MasterFrameTrait extends iron.Trait {
 	}
 					
 	function moveToNearbyTile(x:Vec4,l_camera:Vec4):Bool {
+		var frame_trait:FrameTrait = object.getTrait(FrameTrait);
+		var camera_trait:CameraTrait = Scene.active.camera.getTrait(CameraTrait);
+
 		// get the location
 		var l:Vec4 = object.transform.loc.clone();
-		
-		x.mult(2);
-		
-		// add the offset to the target and camera location
-		l.add(x);
-		
-		// cast the ray and get the hit and make a ray from it
-		var frame_trait:FrameTrait = object.getTrait(FrameTrait);
-		#if arm_physics
-		var hit = physics.rayCast(l_camera,l);
-		var ray:Ray = PhysicsTools.hitToRay(hit,physics);
-		return frame_trait.transformFrame(get_wall().hitray_to_local(ray));
-		#else
-		var ray:Ray = PhysicsTools.pointsToRay(l_camera,l);
-		return frame_trait.transformFrame(get_wall().cameraray_to_local(ray));
-		#end
 
-		return false;
+		// get the closest frame to current location
+		var current:Mat4 = camera_trait.pickClosestFrame(l.x,l.y,l.z);
+		
+		// set x to be the translation increment
+		x.mult(0.25);
+
+		var nearby:Mat4 = null;
+
+		for (i in 1...12) {
+			// add the offset to the target location
+			l.add(x);
+			
+			// cast the ray and get the hit and make a ray from it
+			nearby = camera_trait.pickClosestFrame(l.x,l.y,l.z);
+
+			if (nearby.close(current) == false) break;
+		}
+		
+		return frame_trait.transformFrame(nearby);
 	}
 }
 					
