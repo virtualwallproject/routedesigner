@@ -84,14 +84,6 @@ class Wall {
 
   public function ray_to_local(ray:Ray,f:Vec4->FastFloat,filter_fxn:Panel->Bool):Mat4 {
     if (ray == null) return null;
-
-    var mat_to_string:Mat4->String = (X:Mat4) -> {
-      var x:Mat4 = Mat4.identity();
-      x.setFrom(X);
-      x.toRotation();
-      x.setLoc(X.getLoc());
-      return '[[${x._00}, ${x._10}, ${x._20}, ${x._30}],\n[${x._01}, ${x._11}, ${x._21}, ${x._31}],\n[${x._02}, ${x._12}, ${x._22}, ${x._32}],\n[${x._03}, ${x._13}, ${x._23}, ${x._33}]]';
-    }
     
     var dist_to_ray:Vec4->FastFloat = f;
     var dist_to_center:Panel->FastFloat = function(x:Panel):FastFloat
