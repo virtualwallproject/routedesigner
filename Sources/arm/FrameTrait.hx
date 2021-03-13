@@ -70,6 +70,9 @@ class FrameTrait extends iron.Trait {
     // translate
     a.transform.translate(b._30, b._31, b._32);
 
+		// set the transform to dirty so that it is flagged for update
+		a.transform.dirty = true;
+
     return true;
   }
 	

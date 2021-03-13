@@ -66,7 +66,7 @@ class SlaveFrameTrait extends iron.Trait {
 				update_grip();
 			} else if ((!object.visible) && (current_grip != 0)) {
 				add_to_used();
-			} else if (master_frame.transform.diff()) {
+			} else if (master_frame.transform.diff() || master_frame.transform.dirty) {
 				update_transform();
 			}
 		});
