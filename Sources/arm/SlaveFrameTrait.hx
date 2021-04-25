@@ -137,7 +137,7 @@ class SlaveFrameTrait extends iron.Trait {
 
 			// scale the frame to object if it is a volume
 			var volume:Volume = bucket.get_volume(grip.name);
-			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale();
+			var scale:Null<FastFloat> = (volume == null) ? null : 2*volume.get_scale();
 			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
 			frame_trait.transformFrameToGrip(grip,scale);
 		}
@@ -158,7 +158,7 @@ class SlaveFrameTrait extends iron.Trait {
 
 			// scale the frame to object if it is a volume
 			var volume:Volume = bucket.get_volume(grip.name);
-			var scale:FastFloat = (volume == null) ? null : 2*volume.get_scale();
+			var scale:Null<FastFloat> = (volume == null) ? null : 2*volume.get_scale();
 			var frame_trait:FrameTrait = object.getTrait(FrameTrait);
 			frame_trait.transformFrameToGrip(grip,scale);
 		} else {

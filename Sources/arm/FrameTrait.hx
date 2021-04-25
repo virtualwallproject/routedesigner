@@ -78,17 +78,17 @@ class FrameTrait extends iron.Trait {
 	
 	/* Sets the transform of grip b to this frame
   */
-  public function transformFrameToGrip(b:Object,?scale:FastFloat=null) {
+  public function transformFrameToGrip(b:Object,?scale:Null<Float>=null) {
     if (b != null) {
 			var a:Object = object;
 
       // set rotation from the grip
       a.transform.rot.setFrom(b.transform.rot);
 
-      // set the scale if it was passed
+      // set the scale if it was non-negative
       if (scale != null) {
-				scale = Math.max(scale/_DIM,_MINDIM/_DIM);
-        a.transform.scale.set(scale,scale,scale);
+				var temp:FastFloat = ((scale > _MINDIM) ? scale : _MINDIM)/_DIM;
+        a.transform.scale.set(temp,temp,temp);
       }
       
       // translate
