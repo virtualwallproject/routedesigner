@@ -399,7 +399,7 @@ class SurfaceSendEvents extends iron.Trait {
       // Camera zoom out
       if (temp.squeezed()) camera_trait.zoom_out();
 
-      if (Std.is(temp,KhaMouse)) cast(temp, KhaMouse).wheelUnMove();
+      if (Std.isOfType(temp,KhaMouse)) cast(temp, KhaMouse).wheelUnMove();
 
       if (help_trait.get_current() == ZOOM_SCREENINDEX) {
         help_trait.show_next_screen();

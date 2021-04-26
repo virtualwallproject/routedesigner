@@ -72,7 +72,7 @@ class Bucket {
    */
   public function get_volume(name:String):Volume {
     var temp = holds[names[name]];
-    if (Std.is(temp,Volume)) return cast temp;
+    if (Std.isOfType(temp,Volume)) return cast temp;
     
     return null;
   }

@@ -27,7 +27,7 @@ class KhaSurface {
   public function new() {
     w = Window.get(0);
 
-    if (Std.is(this,KhaMouse)) {
+    if (Std.isOfType(this,KhaMouse)) {
       is_mouse = true;
       radius = 5;
     } else {
