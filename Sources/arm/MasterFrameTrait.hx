@@ -31,6 +31,8 @@ class MasterFrameTrait extends iron.Trait {
 	#else
 	var physics = null;
 	#end
+	var loaded_bucket:Blob = null;
+	var loaded_volumes:Blob = null;
 	
 	@prop
 	var slave_frame_name: String;
@@ -46,6 +48,24 @@ class MasterFrameTrait extends iron.Trait {
 			#if arm_physics
 			physics = armory.trait.physics.PhysicsWorld.active;
 			#end
+
+			// load the bucket blob
+			#if js
+			Assets.loadBlob("bucket_arm", function (b:Blob) {
+			#else
+			Assets.loadBlob("bucket_json", function (b:Blob) {
+			#end
+				loaded_bucket = b;
+			});
+
+			// load the volumes blob
+			#if js
+			Assets.loadBlob("volumes_arm", function (b:Blob) {
+			#else
+			Assets.loadBlob("volumes_json", function (b:Blob) {
+			#end
+				loaded_volumes = b;
+			});
 		});
 		
 		notifyOnUpdate(function() {
@@ -54,9 +74,9 @@ class MasterFrameTrait extends iron.Trait {
 			}
 			if (json_wall == null) {
 				json_wall = Scene.active.getChild(mesh_name);
-				if (json_wall == null) Scene.active.spawnObject(mesh_name, null, null);
+				if (json_wall == null) Scene.active.spawnObject(mesh_name,null,null);
 			}
-			if (bucket == null) {
+			if ((bucket == null) && (loaded_bucket != null) && (loaded_volumes != null)) {
 				load_bucket();
 			}
 		});
@@ -74,17 +94,17 @@ class MasterFrameTrait extends iron.Trait {
 
 	function load_bucket() {
 		bucket = new Bucket();
-
-		// load the bucket of holds
-		Assets.loadBlob("bucket_arm", function (b:Blob) {
-			bucket.loadFromBytes(b.toBytes());
-			// add the volumes to the bucket
-			Assets.loadBlob("volumes_arm", function (b:Blob) {
-				bucket.loadFromBytes(b.toBytes());
-				var temp_trait:SlaveFrameTrait = slave_frame.getTrait(SlaveFrameTrait);
-				temp_trait.load_bucket(bucket);
-			});
-		});
+		#if js
+		bucket.loadFromBytes(loaded_bucket.toBytes());
+		bucket.loadFromBytes(loaded_volumes.toBytes());
+		#else
+		bucket.loadFromJsonString(loaded_bucket.toString());
+		bucket.loadFromJsonString(loaded_volumes.toString());
+		#end
+		loaded_bucket.unload();
+		loaded_volumes.unload();
+		var temp_trait:SlaveFrameTrait = slave_frame.getTrait(SlaveFrameTrait);
+		temp_trait.load_bucket(bucket);
 	}
 	
 	public function get_slave() return slave_frame;
