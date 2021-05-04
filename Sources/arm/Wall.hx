@@ -55,26 +55,30 @@ class Wall {
       } else if (key == "mesh_data") {
 
         var temp:DynamicAccess<Dynamic> = value;
-        var o:DynamicAccess<Dynamic> = temp.mapToMeshData('WallMesh');
+        var mesh_name:String = 'WallMesh';
+        var o:DynamicAccess<Dynamic> = temp.mapToMeshData(mesh_name);
         var meshData:MeshData = o['meshdata'];
         var materials:haxe.ds.Vector<MaterialData> = o['materials'];
         var center_pos:Vec4 = o['center_pos'];
         var mesh:Object = Scene.active.addMeshObject(meshData,materials);
+        mesh.name = mesh_name;
         mesh.transform.translate(center_pos.x,center_pos.y,center_pos.z);
 
       } else if (key == "children") {
 
-        var child_index:Int = 0;
-        for (child_value in (value:DynamicAccess<Dynamic>)) {
-          var temp:DynamicAccess<Dynamic> = child_value;
-          var mesh_name:String = 'WallChildMesh${child_index}';
+        var children:Array<DynamicAccess<Dynamic>> = value;
+        for (i in 0...children.length) {
+          var temp:DynamicAccess<Dynamic> = children[i];
+          var mesh_name:String = 'WallChildMesh${i}';
           var o:DynamicAccess<Dynamic> = temp.mapToMeshData(mesh_name);
           var meshData:MeshData = o['meshdata'];
           var materials:haxe.ds.Vector<MaterialData> = o['materials'];
           var center_pos:Vec4 = o['center_pos'];
           var mesh:Object = Scene.active.addMeshObject(meshData,materials);
+          // setting the name is very important for some reason addMeshObject does
+          // not set it from the value in the MeshData
+          mesh.name = mesh_name;
           mesh.transform.translate(center_pos.x,center_pos.y,center_pos.z);
-          child_index++;
         }
 
       } 

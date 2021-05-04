@@ -59,6 +59,8 @@ class Bucket {
     if (center_pos != null) {
       temp2.transform.loc.add(center_pos);
     }
+    // setting the name is very important for some reason addMeshObject does
+    // not set it from the value in the MeshData
     temp2.name = name;
     if (done != null) done(temp2);
 
@@ -124,8 +126,6 @@ class Volume extends Hold {
       var j:DynamicAccess<Dynamic> = data;
       wall.panels.push(new Panel(Std.parseInt(id),j));
     }
-
-    trace('Volume has ${wall.panels.length} panels');
 
     return o;
   }
